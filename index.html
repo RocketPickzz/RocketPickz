@@ -1,8 +1,8 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Rocket Pickz</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Sora:wght@500;600;700&amp;display=swap">
 <style>
 /* Layout: sticky slim header, settings strip, one shared filter bar, then tiles, chart, breakdown, history. Single committed dark look. */
 :root{
@@ -33,6 +33,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 .unitin input{width:84px;border:0;background:transparent;box-shadow:none;padding:8px 10px 8px 2px}
 .unitin input:focus{box-shadow:none}
 .unitbox .err{position:absolute;top:100%;right:0;white-space:nowrap;z-index:2}
+.ro-note{display:none}
+body.ro .edit-only{display:none!important}
+body.rolewait .edit-only{visibility:hidden}
 .savestate{font-size:.78rem;color:var(--win);font-weight:600}
 .savestate.bad{color:var(--loss)}
 .card{background:linear-gradient(180deg,#1a1a20,#131317);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-width:0}
@@ -178,23 +181,23 @@ legend{font-size:.78rem;font-weight:700;color:var(--muted);padding-inline:6px}
 <header class="top"><div class="top-in">
   <div class="brand"><span aria-hidden="true">🚀</span> Rocket Pickz <small id="modeTag">My bets</small></div>
   <div class="top-actions"><span class="savestate" id="saveState" role="status" aria-live="polite">Saved</span>
-    <button class="btn" id="demoBtn" data-action="demoOn" type="button">Try demo data</button>
-    <form class="unitbox" id="settingsForm" novalidate aria-label="Unit size">
+    <button class="btn edit-only" id="demoBtn" data-action="demoOn" type="button">Try demo data</button>
+    <form class="unitbox edit-only" id="settingsForm" novalidate="" aria-label="Unit size">
       <label for="s_unit" title="What one unit is worth. Saves as you type. Each bet keeps the unit value from the day you placed it.">Unit size</label>
       <span class="unitin"><span aria-hidden="true">$</span><input id="s_unit" type="number" step="0.01" min="0.01" inputmode="decimal" aria-describedby="e_s_unit setMsg"></span>
       <span class="err" id="e_s_unit"></span><span class="sr" id="setMsg"></span>
     </form>
-    <button class="btn primary" data-action="new" type="button">+ New bet</button>
+    <button class="btn primary edit-only" data-action="new" type="button">+ New bet</button>
   </div>
 </div></header>
 
 <main class="wrap">
-  <div class="banner" id="demoBanner" hidden>
+  <div class="banner" id="demoBanner" hidden="">
     <span><b>Demo mode.</b> You are looking at sample bets. Your real records are untouched and stay separate.</span>
     <span class="seg"><button class="btn small" data-action="demoReset" type="button">Reset demo</button><button class="btn small primary" data-action="demoOff" type="button">Back to my bets</button></span>
   </div>
-  <div class="note warn" id="storeWarn" hidden>This browser blocked local storage, so changes will be lost when you close the page. Copy a backup from the bottom of the page.</div>
-  <div class="note" id="storeNote"><span><b>Saved automatically.</b> Your bets and unit size sync to your Claude account, so they follow you to any browser or device where you open this page signed in. A copy also stays in this browser, and unfinished forms stay on this device. Clearing site data, using a private window, or switching browsers or devices will not carry them over. Use Backup at the bottom of the page to keep a copy.</span><button class="btn small" data-action="dismissNote" type="button">Got it</button></div>
+  <div class="note warn" id="storeWarn" hidden="">This browser blocked local storage, so changes will be lost when you close the page. Copy a backup from the bottom of the page.</div>
+  <div class="note" id="storeNote"><span><b>Saved automatically.</b> Only you can add or change bets. Everything syncs to your Claude account, so it follows you to any browser or device where you open this page signed in. People you share the link with can look at it but not change anything. Clearing site data, using a private window, or switching browsers or devices will not carry them over. Use Backup at the bottom of the page to keep a copy.</span><button class="btn small" data-action="dismissNote" type="button">Got it</button></div>
 
   <div class="tiles-h" id="tilesH">Performance</div>
   <section class="tiles" id="tilesPerf" aria-label="Performance"></section>
@@ -225,7 +228,7 @@ legend{font-size:.78rem;font-weight:700;color:var(--muted);padding-inline:6px}
         <button class="btn small" data-action="preset" data-v="all" type="button" aria-pressed="true">All time</button>
         <button class="btn small" data-action="preset" data-v="custom" type="button" aria-pressed="false">Custom range</button>
       </div>
-      <div class="grid2" id="customRange" hidden>
+      <div class="grid2" id="customRange" hidden="">
         <label>From<input id="fl_from" type="date"></label>
         <label>To<input id="fl_to" type="date"></label>
       </div>
@@ -265,7 +268,7 @@ legend{font-size:.78rem;font-weight:700;color:var(--muted);padding-inline:6px}
     <div id="histBox"></div>
   </section>
 
-  <section class="card" aria-labelledby="dataH">
+  <section class="card edit-only" aria-labelledby="dataH">
     <div class="card-h"><h2 id="dataH">Your data</h2></div>
     <p class="sub" style="margin-top:0">Everything lives in this browser. Copy a backup now and then, especially before clearing site data.</p>
     <div class="seg" id="dataBtns">
@@ -275,12 +278,15 @@ legend{font-size:.78rem;font-weight:700;color:var(--muted);padding-inline:6px}
   </section>
 </main>
 
-<div class="ov" id="modalRoot" hidden><div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle" tabindex="-1">
+<div class="ov" id="modalRoot" hidden=""><div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle" tabindex="-1">
   <div class="modal-h"><h2 id="mTitle"></h2><button class="btn small" data-action="closeModal" type="button" aria-label="Close dialog">Close</button></div>
   <div id="mBody"></div>
 </div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script type="application/json" id="rp-data">{"at":1791566851122,"settings":{"unitValue":100,"configured":true},"bets":[{"id":"mv18n6ao5o3q8r","date":"2026-09-09","week":"NFL Week 1","sport":"NFL","book":"MyBookie","desc":"AJ Barner","propType":"Receiving Yards","side":"Over","line":25.5,"odds":-116,"units":0.5,"unitValue":100,"status":"lost","cashoutReturn":null,"notes":"","legs":[],"ladderGroup":"","createdAt":1791566846880,"updatedAt":1791566846880}]}</script>
 <script>
+/* Capture the page exactly as delivered, before anything renders. Used to republish a public copy. */
+var PRISTINE=''; try{PRISTINE=document.body.innerHTML}catch(e){}
 /*LOGIC_START*/
 const PROP_TYPES=['Points','Rebounds','Assists','Three-Pointers Made','Points + Rebounds','Points + Assists','Rebounds + Assists','Points + Rebounds + Assists','Passing Yards','Rushing Yards','Receiving Yards','Receptions','Touchdowns','Strikeouts','Hits','Total Bases','Hits + Runs + RBIs','Hits Allowed','Moneyline','Spread','Total','Parlay','Same Game Parlay','Primetime Parlay','Ladder','Teaser','Lotto','Other'];
 const MULTI=['Parlay','Same Game Parlay','Primetime Parlay','Ladder','Teaser','Lotto'];
@@ -461,8 +467,10 @@ const defaults=()=>({version:2,settings:{unitValue:10,configured:false},bets:[]}
 const cur=()=>mode==='demo'?db.demo:db.real;
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 function lsSet(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}
+var RO=false, APP_READY=false, PUBDIRTY=false;
 function setSaveState(text,bad){const e=$('#saveState');e.textContent=text;e.classList.toggle('bad',!!bad)}
 function persist(){
+  if(RO) return;
   const prev=lsGet(KEY); if(prev) lsSet(KEY+'_prev',prev);
   let ok=lsSet(KEY,JSON.stringify(db.real));
   if(db.demo) ok=lsSet(DEMO_KEY,JSON.stringify(db.demo))&&ok;
@@ -470,6 +478,7 @@ function persist(){
   if(!ok) setSaveState('Not saved on this device: storage blocked',true);
   else if(typeof sync!=='undefined'&&sync&&sync.ready) setSaveState('Saving…');
   else setSaveState('Saved '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}));
+  if(ok&&APP_READY) PUBDIRTY=true;
   if(ok&&typeof sync!=='undefined'&&sync) syncOut();
 }
 function sanitize(d){
@@ -694,7 +703,7 @@ function descCell(b){
   return '<div class="dsc">'+esc(b.desc)+(b.ladderGroup?'<span class="tag">Ladder: '+esc(b.ladderGroup)+'</span>':'')+(b.legs&&b.legs.length?'<span class="tag">'+b.legs.length+' leg'+(b.legs.length>1?'s':'')+'</span>':'')+'</div>'+
     '<div class="meta">'+esc([b.sport,b.book].filter(Boolean).join(' · '))+(b.week?' · '+esc(b.week):'')+'</div>'+legsHTML(b)+(b.notes?'<div class="meta">Note: '+esc(b.notes)+'</div>':'');
 }
-const editBtn=id=>'<button class="btn small" type="button" data-action="edit" data-id="'+esc(id)+'" aria-label="Edit bet">Edit</button>';
+const editBtn=id=>RO?'':'<button class="btn small" type="button" data-action="edit" data-id="'+esc(id)+'" aria-label="Edit bet">Edit</button>';
 const STATUS_ORDER={pending:0,won:1,lost:2,push:3,cashed:4,void:5};
 const betGetters={
   date:b=>b.date,sport:b=>(b.sport||'').toLowerCase(),desc:b=>b.desc.toLowerCase(),type:b=>b.propType.toLowerCase(),line:b=>b.line,odds:b=>b.odds,
@@ -713,7 +722,7 @@ function renderBreakdown(list){
   let rows=types.map(t=>bdRow(t,list.filter(b=>b.propType===t)));
   if(!S.showEmpty) rows=rows.filter(r=>r.a.total>0);
   if(!rows.length){
-    box.innerHTML='<div class="empty"><b>'+(cur().bets.length?'No bets match these filters':'No bets yet')+'</b><span>'+(cur().bets.length?'Widen the date range or clear filters to see prop types here.':'Your performance by prop type appears here as soon as you add a bet.')+'</span>'+(cur().bets.length?'<button class="btn small" type="button" data-action="clearFilters">Clear filters</button>':'<button class="btn small primary" type="button" data-action="new">Add your first bet</button>')+'</div>';
+    box.innerHTML='<div class="empty"><b>'+(cur().bets.length?'No bets match these filters':'No bets yet')+'</b><span>'+(cur().bets.length?'Widen the date range or clear filters to see prop types here.':'Your performance by prop type appears here as soon as you add a bet.')+'</span>'+(cur().bets.length?'<button class="btn small" type="button" data-action="clearFilters">Clear filters</button>':RO?'':'<button class="btn small primary" type="button" data-action="new">Add your first bet</button>')+'</div>';
     return;
   }
   const k=S.bdSort.key, d=S.bdSort.dir;
@@ -747,6 +756,7 @@ function betSub(b){
   return bits+(tags?'<div style="margin-top:4px">'+tags+'</div>':'')+legsHTML(b);
 }
 function resultSelect(b){
+  if(RO) return badge(b.status);
   return '<select class="rsel r-'+b.status+'" data-id="'+esc(b.id)+'" aria-label="Result for '+esc(b.desc)+'">'+Object.keys(STATUS).map(k=>'<option value="'+k+'"'+(b.status===k?' selected':'')+'>'+STATUS[k]+'</option>').join('')+'</select>';
 }
 function unitsCell(b){
@@ -754,12 +764,12 @@ function unitsCell(b){
   if(c.pending) return '<div class="units pot" title="Potential profit if this bet wins. Not counted in realized profit.">≈ '+fmtN2(c.potentialU)+'</div><div class="meta">potential · '+fmt$(c.potentialUsd,true)+'</div>';
   return '<div class="units '+cls(c.realizedU)+'">'+fmtN2(c.realizedU)+'</div><div class="meta">'+fmt$(c.realizedUsd,true)+'</div>';
 }
-const delBtn=id=>'<button class="btn small xdel" type="button" data-action="delRow" data-id="'+esc(id)+'" aria-label="Delete bet" title="Delete bet">×</button>';
+const delBtn=id=>RO?'':'<button class="btn small xdel" type="button" data-action="delRow" data-id="'+esc(id)+'" aria-label="Delete bet" title="Delete bet">×</button>';
 function renderHistory(list){
   const box=$('#histBox');
   if(!list.length){
     const any=cur().bets.length>0;
-    box.innerHTML='<div class="empty"><b>'+(any?'No bets match these filters':'No bets yet')+'</b><span>'+(any?'Try a wider date range or clear the filters.':'Add your first bet to start tracking. You can also look around with sample data that stays separate from your records.')+'</span><div class="seg" style="justify-content:center">'+(any?'<button class="btn small" type="button" data-action="clearFilters">Clear filters</button>':'<button class="btn small primary" type="button" data-action="new">Add your first bet</button><button class="btn small" type="button" data-action="demoOn">Try demo data</button>')+'</div></div>';
+    box.innerHTML='<div class="empty"><b>'+(any?'No bets match these filters':'No bets yet')+'</b><span>'+(any?'Try a wider date range or clear the filters.':RO?'Nothing has been added yet.':'Add your first bet to start tracking. You can also look around with sample data that stays separate from your records.')+'</span><div class="seg" style="justify-content:center">'+(any?'<button class="btn small" type="button" data-action="clearFilters">Clear filters</button>':RO?'':'<button class="btn small primary" type="button" data-action="new">Add your first bet</button><button class="btn small" type="button" data-action="demoOn">Try demo data</button>')+'</div></div>';
     return;
   }
   const base=list.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
@@ -798,8 +808,8 @@ function renderSports(){
 function renderMode(){
   const demo=mode==='demo';
   $('#demoBanner').hidden=!demo; $('#demoBtn').hidden=demo; $('#dataBtns').hidden=demo;
-  $('#modeTag').textContent=demo?'Demo':'My bets';
-  $('#storeNote').hidden=!!lsGet(NOTE_KEY)||demo;
+  $('#modeTag').textContent=RO?'View only':demo?'Demo':'My bets';
+  $('#storeNote').hidden=RO||!!lsGet(NOTE_KEY)||demo;
 }
 function fillSettings(skipValue){
   const st=cur().settings, first=!st.configured&&mode==='real'&&cur().bets.length===0;
@@ -1035,6 +1045,8 @@ const actions={
 };
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-action]'); if(!t) return;
+  const READ_OK=['closeModal','preset','clearFilters','chartMode','expand','bsort','hsort','exportAll','exportFiltered','selectCsv','copyCsv'];
+  if(RO&&!READ_OK.includes(t.dataset.action)) return;
   const fn=actions[t.dataset.action]; if(fn){e.preventDefault();fn(t)}
 });
 document.addEventListener('submit',e=>{
@@ -1055,6 +1067,7 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('change',e=>{
   const id=e.target.id, map={fl_sport:'sport',fl_book:'book',fl_type:'type',fl_status:'status',h_status:'status'};
+  if(RO&&(e.target.classList&&e.target.classList.contains('rsel'))) return;
   if(e.target.classList&&e.target.classList.contains('rsel')){
     const bet=cur().bets.find(b=>b.id===e.target.dataset.id), val=e.target.value;
     if(!bet) return;
@@ -1086,9 +1099,11 @@ try{if(navigator.storage&&navigator.storage.persist) navigator.storage.persist()
 const migrated=loadAll();
 fillSettings(); renderAll();
 if(migrated) toast(migrated);
+APP_READY=true;
 
 /* ---------- account sync (db capability) ---------- */
-var sync={col:null,uid:null,ready:false,first:false,shadow:{},settingsShadow:'',running:false,dirty:false,retry:null};
+/* One shared collection "tracker": only the owner writes, everyone the page is shared with reads. */
+var sync={col:null,uid:null,owner:false,ready:false,first:false,busy:false,shadow:{},settingsShadow:'',running:false,dirty:false,retry:null};
 function canon(o){
   if(Array.isArray(o)) return '['+o.map(canon).join(',')+']';
   if(o&&typeof o==='object') return '{'+Object.keys(o).sort().map(k=>JSON.stringify(k)+':'+canon(o[k])).join(',')+'}';
@@ -1097,8 +1112,11 @@ function canon(o){
 function docIdFor(id){return 'b_'+String(id).replace(/[^A-Za-z0-9_\-.~:@+]/g,'_').slice(0,190)}
 const clock=()=>new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
 function settingsBody(){const s=db.real.settings;return {unitValue:s.unitValue,configured:!!s.configured}}
+function setRole(ro){
+  RO=ro; document.body.classList.remove('rolewait'); document.body.classList.toggle('ro',ro);
+}
 function syncOut(){
-  if(!sync.ready) return;
+  if(!sync.ready||!sync.owner) return;
   sync.dirty=true; if(!sync.running) flush();
 }
 async function flush(){
@@ -1113,6 +1131,7 @@ async function flush(){
       for(const k of Object.keys(sync.shadow)) if(!(k in want)){await sync.col.doc(k).delete();delete sync.shadow[k]}
     }
     setSaveState('Saved to your account · '+clock());
+    if(PUBDIRTY){PUBDIRTY=false;schedulePublish()}
   }catch(e){
     sync.dirty=true;
     setSaveState('Saved on this device. Account sync will retry',true);
@@ -1127,36 +1146,60 @@ function applyRemote(remoteDocs,rs){
   if(rs&&Number(rs.unitValue)>0){next.settings.unitValue=Number(rs.unitValue);next.settings.configured=!!rs.configured||next.settings.configured}
   return next;
 }
-function onRemote(snap){
-  if(snap.metadata&&snap.metadata.fromCache&&!sync.first) return;
-  if(sync.running||sync.dirty) return;
+function splitSnap(snap){
   const remote={}; let rs=null;
   snap.docs.forEach(d=>{
     if(d.id==='settings') rs=d.data();
     else if(d.id.indexOf('b_')===0) remote[d.id]=canon(d.data());
   });
-  if(!sync.first){
-    sync.first=true;
+  return {remote,rs};
+}
+async function legacyDocs(dbn){
+  // Earlier version kept the owner's bets in a private area. Bring them over once.
+  const out={}; let rs=null;
+  try{
+    const old=await dbn.collection('data/users/'+sync.uid).get();
+    old.docs.forEach(d=>{ if(d.id==='settings') rs=d.data(); else if(d.id.indexOf('b_')===0) out[d.id]=canon(d.data()); });
+  }catch(e){}
+  return {out,rs};
+}
+async function firstOwner(remote,rs,dbn){
+  sync.busy=true;
+  try{
+    const flag='rp_shared_'+sync.uid, synced=lsGet(flag)==='1';
     sync.shadow=remote; sync.settingsShadow=rs?canon({unitValue:rs.unitValue,configured:!!rs.configured}):'';
-    const flag='rp_synced_'+sync.uid, synced=lsGet(flag)==='1';
-    if(!synced){
-      // First time on this account: keep what is in this browser and add anything already saved online.
+    if(!synced||(!Object.keys(remote).length&&!rs)){
+      let extra=Object.assign({},remote), rs2=rs;
+      if(!Object.keys(remote).length&&!rs){const lg=await legacyDocs(dbn);extra=lg.out;rs2=lg.rs}
       const have=new Set(db.real.bets.map(b=>docIdFor(b.id)));
-      const extra={}; Object.keys(remote).forEach(k=>{if(!have.has(k)) extra[k]=remote[k]});
-      const merged=applyRemote(Object.assign({},extra),null);
-      db.real.bets=db.real.bets.concat(merged.bets);
-      if(rs&&Number(rs.unitValue)>0&&!db.real.settings.configured){db.real.settings.unitValue=Number(rs.unitValue);db.real.settings.configured=!!rs.configured}
+      const add={}; Object.keys(extra).forEach(k=>{if(!have.has(k)) add[k]=extra[k]});
+      db.real.bets=db.real.bets.concat(applyRemote(add,null).bets);
+      if(rs2&&Number(rs2.unitValue)>0&&!db.real.settings.configured){db.real.settings.unitValue=Number(rs2.unitValue);db.real.settings.configured=!!rs2.configured}
       lsSet(flag,'1');
     }else{
       db.real=applyRemote(remote,rs);
     }
     lsSet(KEY,JSON.stringify(db.real));
-    sync.ready=true; fillSettings(); renderAll();
+    sync.ready=true; setRole(false); fillSettings(); renderAll();
     setSaveState('Saved to your account · '+clock());
-    sync.dirty=true; flush();
+  }finally{sync.busy=false}
+  sync.dirty=true; flush();
+}
+function onRemote(snap,dbn){
+  if(sync.busy) return;
+  if(snap.metadata&&snap.metadata.fromCache&&!sync.first) return;
+  const {remote,rs}=splitSnap(snap);
+  if(!sync.owner){
+    // Viewer: show the owner's data, read only, nothing stored on this device.
+    sync.first=true;
+    db.real=(Object.keys(remote).length||rs)?applyRemote(remote,rs):(EMB&&EMB.bets.length?sanitize({settings:EMB.settings,bets:EMB.bets}):applyRemote(remote,rs)); mode='real';
+    setRole(true); sync.ready=true;
+    setSaveState('View only · live');
+    fillSettings(true); renderAll();
     return;
   }
-  // later updates from another browser or device
+  if(!sync.first){sync.first=true;firstOwner(remote,rs,dbn);return}
+  if(sync.running||sync.dirty) return;
   const next=applyRemote(remote,rs);
   sync.shadow=remote; sync.settingsShadow=rs?canon({unitValue:rs.unitValue,configured:!!rs.configured}):sync.settingsShadow;
   if(canon(next)!==canon(db.real)){
@@ -1165,19 +1208,75 @@ function onRemote(snap){
     setSaveState('Saved to your account · '+clock());
   }
 }
-async function initSync(){
+/* ---------- public copy (visible to people who are not signed in) ---------- */
+var EMB=null, LOCALJSON='', provisional=false, pubT=null, pubOff=false, pubWarned=false;
+function readEmbedded(){
+  try{const o=JSON.parse(document.getElementById('rp-data').textContent);return o&&Array.isArray(o.bets)?o:null}catch(e){return null}
+}
+function showEmbedded(){
+  db.real=sanitize({settings:EMB.settings,bets:EMB.bets}); mode='real'; setRole(true);
+  fillSettings(true); renderAll();
+  setSaveState(EMB.at?'View only · updated '+new Date(EMB.at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'View only');
+}
+function snapshotObj(){return {settings:settingsBody(),bets:JSON.parse(JSON.stringify(db.real.bets))}}
+function snapKey(o){return canon({settings:o.settings,bets:o.bets})}
+function schedulePublish(){
+  if(pubOff||!sync.owner) return;
+  clearTimeout(pubT); pubT=setTimeout(doPublish,4000);
+}
+async function doPublish(){
+  if(pubOff||!sync.owner||RO) return;
+  if(sync.running||sync.dirty){schedulePublish();return}
+  const snap=snapshotObj();
+  if(EMB&&snapKey(EMB)===snapKey(snap)) return;
   try{
-    if(!(window.claude&&window.claude.use)){return}
+    const art=await window.claude.use('artifact'); if(!art){pubOff=true;return}
+    if(!PRISTINE||PRISTINE.indexOf('<title>')<0){pubOff=true;return}
+    const MK='<script type="application/json" id="rp'+'-data">', END='</'+'script>';
+    let body=PRISTINE.slice(PRISTINE.indexOf('<title>'));
+    const i=body.indexOf(MK); if(i<0){pubOff=true;return}
+    const j=body.indexOf(END,i);
+    const json=JSON.stringify({at:Date.now(),settings:snap.settings,bets:snap.bets}).replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
+    body=body.slice(0,i+MK.length)+json+body.slice(j);
+    const html='<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>\n'+body+'\n</body></html>';
+    setSaveState('Updating public copy…');
+    await art.publish(html);
+  }catch(e){
+    const c=e&&e.code;
+    if(c==='conflict') return;
+    if(c==='not_writer'||c==='not_granted'||c==='not_declared'){pubOff=true;return}
+    setSaveState('Saved to your account. Public copy not updated',true);
+    if(!pubWarned){pubWarned=true;toast('Your bets are saved, but the public copy could not be updated yet.',true)}
+    pubT=setTimeout(doPublish,30000);
+  }
+}
+
+async function initSync(){
+  document.body.classList.add('rolewait');
+  EMB=readEmbedded(); LOCALJSON=JSON.stringify(db.real);
+  if(EMB&&db.real.bets.length===0){provisional=true;showEmbedded()}
+  const giveUp=()=>{
+    if(EMB&&db.real.bets.length===0&&!provisional) showEmbedded();
+    else if(!provisional) setRole(false);
+    else setRole(true);
+  };
+  try{
+    if(!(window.claude&&window.claude.use)){giveUp();return}
     const [dbn,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
-    if(!dbn||!user){setSaveState('Saved in this browser only');return}
-    const uid=await user.id();
-    if(!uid){setSaveState('Saved in this browser only');return}
-    sync.uid=uid; sync.col=dbn.collection('data/users/'+uid);
-    setSaveState('Connecting to your account…');
-    sync.col.onSnapshot(onRemote,()=>{sync.ready=false;setSaveState('Saved on this device. Account sync stopped',true)});
-  }catch(e){setSaveState('Saved in this browser only')}
+    if(!dbn||!user){if(!provisional)setSaveState('Saved in this browser only');giveUp();return}
+    const uid=await user.id(), owner=await user.isOwner();
+    if(!uid){if(!provisional)setSaveState('Saved in this browser only');giveUp();return}
+    sync.uid=uid; sync.owner=!!owner; sync.col=dbn.collection('tracker');
+    if(owner&&provisional){RO=false;db.real=sanitize(JSON.parse(LOCALJSON))}
+    if(!provisional) setSaveState(owner?'Connecting to your account…':'Loading…');
+    sync.col.onSnapshot(s=>onRemote(s,dbn),()=>{
+      sync.ready=false;
+      if(owner){setSaveState('Saved on this device. Account sync stopped',true);setRole(false)}
+      else if(EMB){showEmbedded()}
+      else{setSaveState('Could not load the tracker',true);setRole(true)}
+    });
+  }catch(e){if(!provisional)setSaveState('Saved in this browser only');giveUp()}
 }
 initSync();
 </script>
-
 </body></html>
