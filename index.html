@@ -194,7 +194,7 @@ legend{font-size:.78rem;font-weight:700;color:var(--muted);padding-inline:6px}
     <span class="seg"><button class="btn small" data-action="demoReset" type="button">Reset demo</button><button class="btn small primary" data-action="demoOff" type="button">Back to my bets</button></span>
   </div>
   <div class="note warn" id="storeWarn" hidden>This browser blocked local storage, so changes will be lost when you close the page. Copy a backup from the bottom of the page.</div>
-  <div class="note" id="storeNote"><span><b>Saved automatically in this browser.</b> Every bet, setting and unfinished form is saved as you type, on this device only. Clearing site data, using a private window, or switching browsers or devices will not carry them over. Use Backup at the bottom of the page to keep a copy.</span><button class="btn small" data-action="dismissNote" type="button">Got it</button></div>
+  <div class="note" id="storeNote"><span><b>Saved automatically.</b> Your bets and unit size sync to your Claude account, so they follow you to any browser or device where you open this page signed in. A copy also stays in this browser, and unfinished forms stay on this device. Clearing site data, using a private window, or switching browsers or devices will not carry them over. Use Backup at the bottom of the page to keep a copy.</span><button class="btn small" data-action="dismissNote" type="button">Got it</button></div>
 
   <div class="tiles-h" id="tilesH">Performance</div>
   <section class="tiles" id="tilesPerf" aria-label="Performance"></section>
@@ -467,7 +467,10 @@ function persist(){
   let ok=lsSet(KEY,JSON.stringify(db.real));
   if(db.demo) ok=lsSet(DEMO_KEY,JSON.stringify(db.demo))&&ok;
   storageOK=ok; $('#storeWarn').hidden=ok;
-  setSaveState(ok?'Saved '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'Not saved: storage blocked',!ok);
+  if(!ok) setSaveState('Not saved on this device: storage blocked',true);
+  else if(typeof sync!=='undefined'&&sync&&sync.ready) setSaveState('Saving…');
+  else setSaveState('Saved '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}));
+  if(ok&&typeof sync!=='undefined'&&sync) syncOut();
 }
 function sanitize(d){
   const base=defaults(); d=d&&typeof d==='object'?d:base;
@@ -1083,6 +1086,98 @@ try{if(navigator.storage&&navigator.storage.persist) navigator.storage.persist()
 const migrated=loadAll();
 fillSettings(); renderAll();
 if(migrated) toast(migrated);
+
+/* ---------- account sync (db capability) ---------- */
+var sync={col:null,uid:null,ready:false,first:false,shadow:{},settingsShadow:'',running:false,dirty:false,retry:null};
+function canon(o){
+  if(Array.isArray(o)) return '['+o.map(canon).join(',')+']';
+  if(o&&typeof o==='object') return '{'+Object.keys(o).sort().map(k=>JSON.stringify(k)+':'+canon(o[k])).join(',')+'}';
+  return JSON.stringify(o===undefined?null:o);
+}
+function docIdFor(id){return 'b_'+String(id).replace(/[^A-Za-z0-9_\-.~:@+]/g,'_').slice(0,190)}
+const clock=()=>new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+function settingsBody(){const s=db.real.settings;return {unitValue:s.unitValue,configured:!!s.configured}}
+function syncOut(){
+  if(!sync.ready) return;
+  sync.dirty=true; if(!sync.running) flush();
+}
+async function flush(){
+  sync.running=true; clearTimeout(sync.retry);
+  try{
+    while(sync.dirty){
+      sync.dirty=false;
+      const want={}; db.real.bets.forEach(b=>{want[docIdFor(b.id)]=canon(b)});
+      const sj=canon(settingsBody());
+      if(sj!==sync.settingsShadow){await sync.col.doc('settings').set(JSON.parse(sj));sync.settingsShadow=sj}
+      for(const k of Object.keys(want)) if(sync.shadow[k]!==want[k]){await sync.col.doc(k).set(JSON.parse(want[k]));sync.shadow[k]=want[k]}
+      for(const k of Object.keys(sync.shadow)) if(!(k in want)){await sync.col.doc(k).delete();delete sync.shadow[k]}
+    }
+    setSaveState('Saved to your account · '+clock());
+  }catch(e){
+    sync.dirty=true;
+    setSaveState('Saved on this device. Account sync will retry',true);
+    sync.retry=setTimeout(()=>{if(!sync.running)flush()},8000);
+  }
+  sync.running=false;
+}
+function applyRemote(remoteDocs,rs){
+  const unit=db.real.settings.unitValue;
+  const bets=Object.keys(remoteDocs).map(k=>normalizeBet(JSON.parse(remoteDocs[k]),unit,today())).sort((a,b)=>(a.createdAt-b.createdAt)||(a.id<b.id?-1:1));
+  const next={version:2,settings:Object.assign({},db.real.settings),bets};
+  if(rs&&Number(rs.unitValue)>0){next.settings.unitValue=Number(rs.unitValue);next.settings.configured=!!rs.configured||next.settings.configured}
+  return next;
+}
+function onRemote(snap){
+  if(snap.metadata&&snap.metadata.fromCache&&!sync.first) return;
+  if(sync.running||sync.dirty) return;
+  const remote={}; let rs=null;
+  snap.docs.forEach(d=>{
+    if(d.id==='settings') rs=d.data();
+    else if(d.id.indexOf('b_')===0) remote[d.id]=canon(d.data());
+  });
+  if(!sync.first){
+    sync.first=true;
+    sync.shadow=remote; sync.settingsShadow=rs?canon({unitValue:rs.unitValue,configured:!!rs.configured}):'';
+    const flag='rp_synced_'+sync.uid, synced=lsGet(flag)==='1';
+    if(!synced){
+      // First time on this account: keep what is in this browser and add anything already saved online.
+      const have=new Set(db.real.bets.map(b=>docIdFor(b.id)));
+      const extra={}; Object.keys(remote).forEach(k=>{if(!have.has(k)) extra[k]=remote[k]});
+      const merged=applyRemote(Object.assign({},extra),null);
+      db.real.bets=db.real.bets.concat(merged.bets);
+      if(rs&&Number(rs.unitValue)>0&&!db.real.settings.configured){db.real.settings.unitValue=Number(rs.unitValue);db.real.settings.configured=!!rs.configured}
+      lsSet(flag,'1');
+    }else{
+      db.real=applyRemote(remote,rs);
+    }
+    lsSet(KEY,JSON.stringify(db.real));
+    sync.ready=true; fillSettings(); renderAll();
+    setSaveState('Saved to your account · '+clock());
+    sync.dirty=true; flush();
+    return;
+  }
+  // later updates from another browser or device
+  const next=applyRemote(remote,rs);
+  sync.shadow=remote; sync.settingsShadow=rs?canon({unitValue:rs.unitValue,configured:!!rs.configured}):sync.settingsShadow;
+  if(canon(next)!==canon(db.real)){
+    db.real=next; lsSet(KEY,JSON.stringify(db.real));
+    if(mode==='real'){ if(document.activeElement!==$('#s_unit')) fillSettings(); renderAll(); toast('Updated from your account.'); }
+    setSaveState('Saved to your account · '+clock());
+  }
+}
+async function initSync(){
+  try{
+    if(!(window.claude&&window.claude.use)){return}
+    const [dbn,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
+    if(!dbn||!user){setSaveState('Saved in this browser only');return}
+    const uid=await user.id();
+    if(!uid){setSaveState('Saved in this browser only');return}
+    sync.uid=uid; sync.col=dbn.collection('data/users/'+uid);
+    setSaveState('Connecting to your account…');
+    sync.col.onSnapshot(onRemote,()=>{sync.ready=false;setSaveState('Saved on this device. Account sync stopped',true)});
+  }catch(e){setSaveState('Saved in this browser only')}
+}
+initSync();
 </script>
 
 </body></html>
